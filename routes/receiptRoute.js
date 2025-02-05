@@ -6,6 +6,7 @@ import {
   deleteInv,
   getAllReceipts,
   getReceiptById,
+  getReceiptsByStudentAndSession,
   //   getInvoiceId,
   getReceiptsByStudentId,
   getReceiptsByStudentsId,
@@ -19,10 +20,11 @@ router.post(
   "/addSessionToReceiptWithoutSession",
   addSessionToReceiptWithoutSession
 );
-router.get("/receipt/:id", getReceiptById);
-
 // routes/receiptRoutes.js
 router.get("/receipt/:studentId", getReceiptsByStudentId);
+
+router.get("/receipt/:id", getReceiptById);
+router.get("/receipt/:studentId/:sessionId", getReceiptsByStudentAndSession);
 
 // router.get("/receipt/:id", getInvoiceId);
 router.get("/receipt/student/:id", getStudentInvoiceId);

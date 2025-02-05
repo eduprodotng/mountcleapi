@@ -201,6 +201,92 @@ export const getReceiptById = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+// controller/receiptController.js
+// export const getReceiptsByStudentAndSession = async (req, res) => {
+//   try {
+//     const { studentId, sessionId } = req.params;
+
+//     // Validate session ID
+//     const session = await Session.findById(sessionId);
+//     if (!session) {
+//       return res.status(400).json({ error: "Invalid session ID" });
+//     }
+
+//     // Find receipts by student ID and session ID
+//     const receipts = await Receipt.find({
+//       student: studentId,
+//       session: sessionId,
+//     });
+
+//     if (!receipts.length) {
+//       return res
+//         .status(404)
+//         .json({
+//           error: "No receipts found for this student in the specified session",
+//         });
+//     }
+
+//     return res.status(200).json(receipts);
+//   } catch (error) {
+//     console.error("Error fetching receipts by student and session:", error);
+//     return res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };
+
+export const getReceiptsByStudentAndSession = async (req, res) => {
+  try {
+    const { studentId, sessionId } = req.params;
+
+    console.log("🔍 Received Student ID:", studentId);
+    console.log("🔍 Received Session ID:", sessionId);
+
+    // Validate session ID
+    const session = await Session.findById(sessionId);
+    if (!session) {
+      console.log("❌ Invalid Session ID:", sessionId);
+      return res.status(400).json({ error: "Invalid session ID" });
+    }
+
+    // Fetch the student from the User model
+    const student = await User.findOne({ _id: studentId, role: "student" });
+    if (!student) {
+      console.log("❌ Student not found for ID:", studentId);
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    console.log("✅ Found Student:", student.studentName);
+    console.log("📋 Student Sessions:", student.session);
+
+    // Check if the student is part of the session
+    const isInSession = student.session.includes(sessionId);
+    console.log("🗓️ Is Student in Session?", isInSession);
+
+    // Find receipts by studentName and session ID
+    const receipts = await Receipt.find({
+      studentName: student.studentName,
+      session: sessionId,
+    });
+
+    console.log("🧾 Fetched Receipts:", receipts);
+
+    if (!receipts.length) {
+      console.log("❌ No receipts found for:", {
+        studentName: student.studentName,
+        sessionId,
+      });
+      return res.status(404).json({
+        error: "No receipts found for this student in the specified session",
+      });
+    }
+
+    return res.status(200).json(receipts);
+  } catch (error) {
+    console.error("🚨 Error fetching receipts:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 // controllers/receiptController.js
 
 export const getReceiptsByStudentsId = async (req, res) => {
@@ -227,26 +313,57 @@ export const getReceiptsByStudentsId = async (req, res) => {
 // controllers/receiptController.js
 
 // controllers/receiptController.js
+// export const getReceiptsByStudentId = async (req, res) => {
+//   try {
+//     const { studentId } = req.params;
+//     console.log("Requested studentId:", studentId);
+
+//     const student = await User.findById(studentId);
+//     if (!student) {
+//       console.log("Student not found");
+//       return res.status(404).json({ error: "Student not found" });
+//     }
+//     console.log("Fetched student:", student);
+
+//     // Log both names for comparison
+//     console.log(
+//       "Searching for receipts with studentName:",
+//       student.studentName
+//     );
+
+//     const receipts = await Receipt.find({ studentName: student.studentName });
+//     console.log("Fetched receipts:", receipts);
+
+//     if (receipts.length === 0) {
+//       return res.status(404).json({ error: "Receipt not found" });
+//     }
+
+//     return res.status(200).json(receipts);
+//   } catch (error) {
+//     console.error("Error fetching receipts:", error);
+//     return res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };
 export const getReceiptsByStudentId = async (req, res) => {
   try {
     const { studentId } = req.params;
-
     console.log("Requested studentId:", studentId);
 
-    // Check if the student with the provided ID exists
+    // Fetch the student by studentId
     const student = await User.findById(studentId);
-
     if (!student) {
       console.log("Student not found");
       return res.status(404).json({ error: "Student not found" });
     }
-
     console.log("Fetched student:", student);
 
-    // Find all receipts for the student
-    const receipts = await Receipt.find({ studentName: student.username });
-
+    // Fetch the receipts using studentName to match
+    const receipts = await Receipt.find({ studentName: student.studentName });
     console.log("Fetched receipts:", receipts);
+
+    if (receipts.length === 0) {
+      return res.status(404).json({ error: "Receipt not found" });
+    }
 
     return res.status(200).json(receipts);
   } catch (error) {
@@ -254,6 +371,7 @@ export const getReceiptsByStudentId = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 export const getAllReceipts = async (req, res) => {
   const { sessionId } = req.params; // Extract the session ID from the route parameters
 

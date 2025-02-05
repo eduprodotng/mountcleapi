@@ -46,7 +46,7 @@ const s3 = new S3({
 });
 
 const corsOptions = {
-  origin: ["http://localhost:3003"],
+  origin: ["http://localhost:3001", "https://mountcle.edupro.com.ng"],
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,

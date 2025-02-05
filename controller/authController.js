@@ -11,26 +11,7 @@ import bcrypt from "bcryptjs";
 import Download from "../models/downloadModel.js";
 import Subject from "../models/subModel.js";
 import Exam from "../models/examModel.js";
-// export const register = async (req, res) => {
-//   try {
-//     const { role, ...userData } = req.body; // Capture role and user data
 
-//     if (!["admin", "teacher", "parent", "student"].includes(role)) {
-//       return res.status(400).json({ error: "Invalid role" });
-//     }
-//     const hashedPassword = await bcrypt.hash(userData.password, 10);
-
-//     // const user = new User({ role, ...userData });
-//     const user = new User({ role, ...userData, password: hashedPassword });
-//     await user.save();
-
-//     const token = jwt.sign({ user, role: user.role }, process.env.JWT_SECRET);
-
-//     return res.status(201).json({ token, user });
-//   } catch {
-//     return res.status(500).json({ error: "Registration failed" });
-//   }
-// };
 export const register = async (req, res) => {
   try {
     const { role, sessionId, ...userData } = req.body; // Capture session ID
@@ -81,22 +62,75 @@ export const register = async (req, res) => {
     return res.status(500).json({ error: "Registration failed" });
   }
 };
-// export const getUserByRole = async (req, res) => {
-//   const role = req.params.role;
 
+// export const register = async (req, res) => {
 //   try {
-//     // Find users based on their role
-//     const users = await User.find({ role: role }).exec();
+//     const { role, sessionStart, sessionEnd, ...userData } = req.body; // Capture sessionStart and sessionEnd
+//     const { email, username, password } = userData;
+//     console.log("Received registration data:", {
+//       role,
+//       sessionStart,
+//       sessionEnd,
+//       userData,
+//     });
 
-//     if (!users) {
-//       return res.status(404).json({ error: "No users found with that role" });
+//     // Validate role
+//     if (!["admin", "teacher", "parent", "student"].includes(role)) {
+//       return res.status(400).json({ error: "Invalid role" });
 //     }
 
-//     return res.status(200).json(users);
-//   } catch {
-//     return res.status(500).json({ error: "Failed to get users" });
+//     // Check if the user already exists
+//     const existingUser = await User.findOne({
+//       $or: [{ email: email }, { username: username }],
+//     }).exec();
+
+//     if (existingUser) {
+//       if (existingUser.username === username) {
+//         return res.status(400).json({ error: "Username already exists" });
+//       } else if (existingUser.email === email) {
+//         return res.status(400).json({ error: "Email already exists" });
+//       }
+//     }
+
+//     // Fetch the Account by sessionStart and sessionEnd
+//     const account = await Account.findOne({
+//       sessionStart: sessionStart,
+//       sessionEnd: sessionEnd,
+//     });
+
+//     if (!account) {
+//       return res
+//         .status(400)
+//         .json({ error: "No matching account found for the given session" });
+//     }
+
+//     // Hash the password before saving
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Create a new user and associate it with the found account
+//     const user = new User({
+//       role,
+//       ...userData,
+//       password: hashedPassword,
+//       account: account._id, // Store the account ID in the user model
+//     });
+
+//     await user.save();
+
+//     // Generate a JWT token
+//     const token = jwt.sign(
+//       { userId: user._id, role: user.role },
+//       process.env.JWT_SECRET,
+//       { expiresIn: "1h" } // Token expires in 1 hour
+//     );
+
+//     return res.status(201).json({ token, user });
+//   } catch (error) {
+//     console.error("Registration error:", error);
+//     return res.status(500).json({ error: "Registration failed" });
 //   }
 // };
+
 export const getUserByRole = async (req, res) => {
   const { role, sessionId } = req.params;
 
@@ -122,72 +156,6 @@ export const getUserByRole = async (req, res) => {
     return res.status(500).json({ error: "Failed to get users" });
   }
 };
-// ...
-// export const login = async (req, res) => {
-//   const { identifier, password } = req.body;
-
-//   try {
-//     // Find the user by email or username
-//     const user = await User.findOne({
-//       $or: [{ email: identifier }, { username: identifier }],
-//     }).exec();
-
-//     console.log("User found:", user);
-
-//     if (!user) {
-//       console.log("User not found");
-//       return res.status(401).json({ error: "Invalid credentials" });
-//     }
-
-//     const role = user.role;
-
-//     // const token = jwt.sign({ user, role }, process.env.JWT_SECRET);
-//     const token = jwt.sign({ user, role }, process.env.JWT_SECRET, {
-//       expiresIn: "1h",
-//     });
-
-//     return res.status(200).json({ token, user });
-//   } catch {
-//     return res.status(500).json({ error: "Login failed" });
-//   }
-// };
-
-// export const login = async (req, res) => {
-//   const { identifier, password } = req.body;
-
-//   try {
-//     // Find the user by email or username
-//     const user = await User.findOne({
-//       $or: [{ email: identifier }, { username: identifier }],
-//     }).exec();
-
-//     console.log("User found:", user);
-
-//     if (!user) {
-//       console.log("User not found");
-//       return res.status(401).json({ error: "Invalid credentials" });
-//     }
-
-//     // Compare provided password with hashed password
-//     const isPasswordValid = await bcrypt.compare(password, user.password);
-//     if (!isPasswordValid) {
-//       console.log("Invalid password");
-//       return res.status(401).json({ error: "Invalid credentials" });
-//     }
-
-//     const role = user.role;
-
-//     // Generate a token if the password is correct
-//     const token = jwt.sign({ user, role }, process.env.JWT_SECRET, {
-//       expiresIn: "1h",
-//     });
-
-//     return res.status(200).json({ token, user });
-//   } catch (error) {
-//     console.error("Login error:", error);
-//     return res.status(500).json({ error: "Login failed" });
-//   }
-// };
 
 export const login = async (req, res) => {
   const { identifier, password } = req.body;
@@ -264,68 +232,7 @@ export const updatePasswords = async (req, res) => {
     mongoose.connection.close(); // Close the database connection
   }
 };
-// export const getAdmin = async (req, res) => {
-//   try {
-//     // Verify the user role (only "admin" can get teachers)
-//     const teachers = await User.find({ role: "admin" });
-//     res.status(200).json(teachers);
-//   } catch (error) {
-//     res.status(500).json({ message: "Server Error" });
-//   }
-// };
-// export const getAdmin = async (req, res) => {
-//   const { sessionId } = req.params;
 
-//   try {
-//     // Convert sessionId to ObjectId
-//     const sessionObjectId = mongoose.Types.ObjectId(sessionId);
-
-//     // Fetch admins for the specified session
-//     const admins = await User.find({
-//       role: "admin",
-//       session: sessionObjectId, // Add session filter here
-//     })
-//       .select("username email address phone _id") // Adjust fields as needed
-//       .exec();
-
-//     if (admins.length === 0) {
-//       return res
-//         .status(404)
-//         .json({ error: "No admins found for that session" });
-//     }
-
-//     return res.status(200).json(admins);
-//   } catch (error) {
-//     console.error("Error fetching admins:", error);
-//     return res.status(500).json({ error: "Failed to get admins" });
-//   }
-
-// export const getAdmin = async (req, res) => {
-//   const { sessionId } = req.params;
-
-//   try {
-//     const sessionObjectId = mongoose.Types.ObjectId(sessionId);
-
-//     // Fetch admins for the specified session
-//     const admins = await User.find({
-//       role: "admin",
-//       session: sessionObjectId, // Remove ObjectId conversion if session is stored as a string
-//     })
-//       .select("username email address phone _id") // Adjust fields as needed
-//       .exec();
-
-//     if (admins.length === 0) {
-//       return res
-//         .status(404)
-//         .json({ error: "No admins found for that session" });
-//     }
-
-//     return res.status(200).json(admins);
-//   } catch (error) {
-//     console.error("Error fetching admins:", error);
-//     return res.status(500).json({ error: "Failed to get admins" });
-//   }
-// };
 export const getAdmin = async (req, res) => {
   const { sessionId } = req.params; // Extract sessionId from the URL parameters
 
@@ -599,127 +506,6 @@ export const deleteUserFromSpecificSession = async (req, res) => {
   }
 };
 
-// export const createSetting = async (req, res) => {
-//   try {
-//     const { name, principalName, resumptionDate, examName, session } = req.body;
-
-//     // Look for an existing setting with the specified session
-//     let school = await Setting.findOne({ session, examName });
-
-//     if (!school) {
-//       // If no setting exists for the session, create a new one
-//       school = new Setting();
-//     }
-
-//     // Update fields
-//     school.name = name;
-//     school.principalName = principalName;
-//     school.resumptionDate = resumptionDate;
-//     school.session = session; // Assign session ID
-//     school.examName = examName; // Add exam name to the school profile
-
-//     // Handle file upload if a signature file is provided
-//     if (req.file) {
-//       school.signature = req.file.location; // Use S3 location URL for signature
-//       school.markModified("signature"); // Explicitly mark the signature as modified
-//     }
-
-//     // Log the full req.file object and S3 URL
-//     console.log("File object:", req.file); // Displays the full req.file object
-//     console.log(
-//       "S3 File URL:",
-//       req.file ? req.file.location : "No file uploaded"
-//     );
-
-//     // Save the document and log the result before and after saving
-//     console.log("Before save:", school); // Log document before saving
-//     await school.save();
-//     console.log("After save:", school); // Log document after saving
-
-//     res.status(200).json({
-//       success: true,
-//       message: school.isNew
-//         ? "School profile created successfully"
-//         : "School profile updated successfully",
-//     });
-//   } catch (error) {
-//     console.error("Error updating school profile:", error);
-//     res.status(500).json({ success: false, message: "Internal server error" });
-//   }
-// };
-
-// export const createSetting = async (req, res) => {
-//   try {
-//     // Log incoming request body
-//     console.log("Incoming request body:", req.body);
-
-//     const { name, principalName, resumptionDate, examId, session } = req.body;
-
-//     // Validate if the examId exists in the Exam collection
-//     console.log("Checking if examId exists in Exam collection:", examId);
-//     const exam = await Exam.findById(examId);
-
-//     if (!exam) {
-//       console.log("Exam not found:", examId);
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "Exam not found" });
-//     }
-
-//     // Look for an existing setting with the specified session and examId
-//     console.log(
-//       "Looking for existing setting for session:",
-//       session,
-//       "and examId:",
-//       examId
-//     );
-//     let school = await Setting.findOne({ session, exam: examId });
-
-//     if (!school) {
-//       console.log("No existing setting found. Creating a new setting.");
-//       // If no setting exists for the session and exam, create a new one
-//       school = new Setting();
-//     }
-
-//     // Log the state of the school object before updating
-//     console.log("Current school object:", school);
-
-//     // Update fields
-//     school.name = name;
-//     school.principalName = principalName;
-//     school.resumptionDate = resumptionDate;
-//     school.session = session;
-//     school.exam = examId; // Add examId as reference
-
-//     // Handle file upload if a signature file is provided
-//     if (req.file) {
-//       console.log("File uploaded. Updating signature.");
-//       school.signature = req.file.location; // Use S3 location URL for signature
-//       school.markModified("signature"); // Explicitly mark the signature as modified
-//     }
-
-//     // Log the school object before saving
-//     console.log("Before saving school object:", school);
-
-//     // Save the document
-//     await school.save();
-//     console.log("After saving school object:", school);
-
-//     // Send a response
-//     res.status(200).json({
-//       success: true,
-//       message: school.isNew
-//         ? "School profile created successfully"
-//         : "School profile updated successfully",
-//     });
-//   } catch (error) {
-//     // Log the error with detailed context
-//     console.error("Error updating school profile:", error.message);
-//     console.error("Stack trace:", error.stack);
-//     res.status(500).json({ success: false, message: "Internal server error" });
-//   }
-// };
-
 export const createSetting = async (req, res) => {
   try {
     // Log incoming request body
@@ -797,96 +583,6 @@ export const createSetting = async (req, res) => {
   }
 };
 
-// export const getSetting = async (req, res) => {
-//   try {
-//     const { sessionId, term } = req.query;
-
-//     console.log("Query Parameters:", req.query); // Log the query parameters
-
-//     // First, find the exam by its name (e.g., "FIRST TERM") to get the examId
-//     const exam = await Exam.findOne({ name: term });
-//     if (!exam) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Exam not found for the specified term.",
-//       });
-//     }
-
-//     console.log("Found exam:", exam); // Log the found exam details
-
-//     // Now find the setting using the sessionId and the found examId
-//     const setting = await Setting.findOne({
-//       session: sessionId,
-//       exam: exam._id, // Use the examId for the search
-//     });
-
-//     console.log("Setting found:", setting); // Log the result from the database
-
-//     if (!setting) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "School setting not found for the specified session and term.",
-//       });
-//     }
-
-//     return res.status(200).json({ success: true, data: setting });
-//   } catch (error) {
-//     console.error("Error fetching school setting:", error);
-//     return res.status(500).json({ success: false, message: "Server error" });
-//   }
-// };
-// export const getSetting = async (req, res) => {
-//   try {
-//     const { sessionId, term } = req.query;
-
-//     console.log("Received query parameters:", req.query); // Log query parameters
-
-//     // Validate if the required parameters are passed
-//     if (!sessionId || !term) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "Missing sessionId or term." });
-//     }
-
-//     // Find the exam by term (exam name)
-//     const exam = await Exam.findOne({ name: term });
-//     if (!exam) {
-//       console.log("Exam not found:", term);
-//       return res.status(404).json({
-//         success: false,
-//         message: "Exam not found for the specified term.",
-//       });
-//     }
-
-//     console.log("Found exam:", exam); // Log exam details
-
-//     // Now, find the setting using the sessionId and examId
-//     const setting = await Setting.findOne({
-//       session: sessionId,
-//       exam: exam._id, // Use the _id of the found exam
-//     });
-
-//     if (!setting) {
-//       console.log(
-//         "Setting not found for session:",
-//         sessionId,
-//         "and exam:",
-//         exam._id
-//       );
-//       return res.status(404).json({
-//         success: false,
-//         message: "School setting not found for the specified session and term.",
-//       });
-//     }
-
-//     console.log("Setting found:", setting); // Log the found setting
-
-//     return res.status(200).json({ success: true, data: setting });
-//   } catch (error) {
-//     console.error("Error fetching school setting:", error);
-//     return res.status(500).json({ success: false, message: "Server error" });
-//   }
-// };
 export const getSetting = async (req, res) => {
   try {
     const { sessionId } = req.query;
@@ -945,168 +641,46 @@ export const getSetting = async (req, res) => {
 
 export const getAccountSetting = async (req, res) => {
   try {
-    // Assuming you only have one school profile, you can fetch the first one
-    const schoolSetting = await Account.findOne();
+    // Fetch all accounts instead of just one
+    const schoolSettings = await Account.find();
 
-    if (!schoolSetting) {
+    if (schoolSettings.length === 0) {
       return res
         .status(404)
-        .json({ success: false, message: "School setting not found" });
+        .json({ success: false, message: "No school settings found" });
     }
 
-    res.status(200).json({ success: true, data: schoolSetting });
-  } catch {
+    res.status(200).json({ success: true, data: schoolSettings });
+  } catch (error) {
+    console.error("Error fetching accounts:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+export const getAllSessions = async (req, res) => {
+  try {
+    // Fetch only sessionStart and sessionEnd for all accounts
+    const sessions = await Account.find(
+      {},
+      { sessionStart: 1, sessionEnd: 1, _id: 0 }
+    );
 
-// export const createAccount = async (req, res, s3) => {
-//   console.log("Received S3 object:", s3);
-//   try {
-//     const {
-//       name,
-//       motto,
-//       address,
-//       phone,
-//       phonetwo,
-//       currency,
-//       email,
-//       sessionStart,
-//       sessionEnd,
-//     } = req.body;
+    if (sessions.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No sessions found" });
+    }
 
-//     // Check if school profile exists, create if not
-//     let school = await Account.findOne();
-//     if (!school) {
-//       school = new Account();
-//     }
+    // Format sessions like "2022-2023", "2023-2024"
+    const formattedSessions = sessions.map(
+      (session) => `${session.sessionStart}-${session.sessionEnd}`
+    );
 
-//     school.name = name;
-//     school.motto = motto;
-//     school.address = address;
-//     school.phone = phone;
-//     school.phonetwo = phonetwo;
-//     school.currency = currency;
-//     school.email = email;
-//     school.sessionStart = sessionStart;
-//     school.sessionEnd = sessionEnd;
-
-//     if (req.file) {
-//       console.log("Uploading file to S3...");
-
-//       // Add this function to handle the actual S3 upload
-//       const uploadParams = {
-//         Bucket: "edupros", // Replace with your bucket name
-//         Key: `${Date.now()}-${req.file.originalname}`,
-//         Body: req.file.buffer,
-//         ACL: "public-read",
-//         ContentType: req.file.mimetype,
-//       };
-
-//       // // Use the S3 uploadParams for the upload
-//       // const result = await s3.putObject(uploadParams).promise();
-//       // Use the putObject method
-//       const result = await s3.putObject(uploadParams);
-
-//       console.log("File uploaded successfully:", result.Location);
-//       if (result && result.Location) {
-//         school.schoolLogo = result.Key; // Use result.Key for the S3 key
-//         console.log("File URL:", result.Location);
-//       } else {
-//         console.error("Error uploading file to S3:", result);
-//       }
-
-//       school.schoolLogo = result.Key; // Use result.Key for the S3 key
-//     }
-
-//     await school.save();
-//     console.log("Updated School Profile:", school);
-
-//     res
-//       .status(200)
-//       .json({ success: true, message: "School profile updated successfully" });
-//   } catch (error) {
-//     console.error("Error updating school profile:", error);
-//     res.status(500).json({ success: false, message: "Internal server error" });
-//   }
-// };
-
-// export const createAccount = async (req, res, s3) => {
-//   console.log("Received S3 object:", s3);
-//   try {
-//     const {
-//       name,
-//       motto,
-//       address,
-//       phone,
-//       phonetwo,
-//       currency,
-//       email,
-//       sessionStart,
-//       sessionEnd,
-//     } = req.body;
-
-//     // Check if school profile exists, create if not
-//     let school = await Account.findOne();
-//     if (!school) {
-//       school = new Account();
-//     }
-
-//     school.name = name;
-//     school.motto = motto;
-//     school.address = address;
-//     school.phone = phone;
-//     school.phonetwo = phonetwo;
-//     school.currency = currency;
-//     school.email = email;
-//     school.sessionStart = sessionStart;
-//     school.sessionEnd = sessionEnd;
-
-//     if (req.file) {
-//       console.log("Uploading file to S3...");
-
-//       // Add this function to handle the actual S3 upload
-//       const uploadParams = {
-//         Bucket: "edupros", // Replace with your bucket name
-//         Key: `${Date.now()}-${req.file.originalname}`,
-//         Body: req.file.buffer,
-//         ACL: "public-read",
-//         ContentType: req.file.mimetype,
-//       };
-
-//       // Use the putObject method
-//       const result = await s3.putObject(uploadParams);
-//       console.log("S3 Upload Result:", result);
-//       console.log("Upload Parameters:", uploadParams);
-
-//       console.log("File uploaded successfully:", result.Location);
-//       if (result && result.ETag) {
-//         // Update the schoolLogo field with the file URL
-//         // school.schoolLogo = `${uploadParams.Bucket}.s3.amazonaws.com/${uploadParams.Key}`;
-
-//         school.schoolLogo = uploadParams.Key;
-
-//         console.log("File URL:", school.schoolLogo);
-//       } else {
-//         console.error("Error uploading file to S3:", result);
-//       }
-//     }
-
-//     await school.save();
-//     console.log("Updated School Profile:", school);
-
-//     // Add this console log to see the data in the database
-//     const updatedSchool = await Account.findOne();
-//     console.log("Data in the database:", updatedSchool);
-
-//     res
-//       .status(200)
-//       .json({ success: true, message: "School profile updated successfully" });
-//   } catch (error) {
-//     console.error("Error updating school profile:", error);
-//     res.status(500).json({ success: false, message: "Internal server error" });
-//   }
-// };
+    res.status(200).json({ success: true, data: formattedSessions });
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
 
 export const createAccount = async (req, res, s3) => {
   try {
@@ -1124,190 +698,65 @@ export const createAccount = async (req, res, s3) => {
 
     console.log("Received request body:", req.body);
 
-    // Check if school profile exists, create if not
-    let school = await Account.findOne();
-    if (!school) {
-      school = new Account();
+    // Allow multiple accounts with different sessions
+    const existingAccount = await Account.findOne({
+      sessionStart,
+      sessionEnd,
+    });
+
+    if (existingAccount) {
+      return res.status(400).json({
+        message: "An account with this session already exists.",
+      });
     }
 
-    school.name = name;
-    school.motto = motto;
-    school.address = address;
-    school.phone = phone;
-    school.phonetwo = phonetwo;
-    school.currency = currency;
-    school.email = email;
-    school.sessionStart = sessionStart;
-    school.sessionEnd = sessionEnd;
+    const newAccount = new Account({
+      name,
+      motto,
+      address,
+      phone,
+      phonetwo,
+      currency,
+      email,
+      sessionStart,
+      sessionEnd,
+    });
 
     if (req.file) {
       console.log("Received file:", req.file);
 
-      // Add this function to handle the actual S3 upload
       const uploadParams = {
-        Bucket: "edupros", // Replace with your bucket name
-        Key: `${Date.now()}-${req.file.originalname}`,
+        Bucket: "edupros",
+        Key: `mount/${Date.now()}-${req.file.originalname}`,
         Body: req.file.buffer,
         ACL: "public-read",
         ContentType: req.file.mimetype,
       };
 
-      console.log("Upload Parameters:", uploadParams);
-
-      // Use the putObject method
       const result = await s3.putObject(uploadParams);
       console.log("S3 Upload Result:", result);
 
-      console.log("File uploaded successfully:", result.Location);
       if (result && result.ETag) {
-        school.schoolLogo = uploadParams.Key;
-        console.log("File URL:", school.schoolLogo);
+        newAccount.schoolLogo = uploadParams.Key;
+        console.log(
+          "File URL:",
+          `https://edupros.s3.amazonaws.com/${uploadParams.Key}`
+        );
       } else {
         console.error("Error uploading file to S3:", result);
       }
     }
 
-    await school.save();
-    console.log("Updated School Profile:", school);
-
-    // Add this console log to see the data in the database
-    const updatedSchool = await Account.findOne();
-    console.log("Data in the database:", updatedSchool);
-
+    await newAccount.save();
+    console.log("New School Profile Created:", newAccount);
+    res.status(201).json(newAccount);
+  } catch (error) {
+    console.error("Error creating account:", error);
     res
-      .status(200)
-      .json({ success: true, message: "School profile updated successfully" });
-  } catch {
-    res.status(500).json({ success: false, message: "Internal server error" });
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
 };
-
-// export const updateStudentById = async (req, res) => {
-//   try {
-//     const studentId = req.params.id;
-//     const updatedData = req.body; // Assuming you send the updated data in the request body
-
-//     // Validate and update the fields you want to allow modification for
-//     const allowedUpdates = [
-//       "studentName",
-//       "AdmNo",
-//       "classname",
-//       "parentsName",
-//       "gender",
-//       "username",
-//       "address",
-//       "email",
-//       "password",
-//       "phone",
-//     ];
-//     const isValidUpdate = Object.keys(updatedData).every((update) =>
-//       allowedUpdates.includes(update)
-//     );
-
-//     if (!isValidUpdate) {
-//       return res.status(400).json({ error: "Invalid updates" });
-//     }
-
-//     const updatedStudent = await User.findByIdAndUpdate(
-//       studentId,
-//       updatedData,
-//       {
-//         new: true, // Return the updated document
-//         runValidators: true, // Run model validators on the update
-//       }
-//     );
-
-//     if (!updatedStudent) {
-//       return res.status(404).json({ error: "Student not found" });
-//     }
-
-//     res.status(200).json(updatedStudent);
-//   } catch {
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// };
-// export const updateStudentById = async (req, res) => {
-//   try {
-//     const studentId = req.params.id;
-//     const { sessionId, ...updatedData } = req.body; // Extract sessionId and rest of the data
-
-//     // Validate and update the fields you want to allow modification for
-//     const allowedUpdates = [
-//       "studentName",
-//       "AdmNo",
-//       "classname",
-//       "parentsName",
-//       "gender",
-//       "username",
-//       "address",
-//       "email",
-//       "password",
-//       "phone",
-//     ];
-//     const isValidUpdate = Object.keys(updatedData).every((update) =>
-//       allowedUpdates.includes(update)
-//     );
-
-//     if (!isValidUpdate) {
-//       return res.status(400).json({ error: "Invalid updates" });
-//     }
-
-//     // If sessionId is provided, validate it
-//     if (sessionId) {
-//       const session = await Session.findById(sessionId);
-//       if (!session) {
-//         return res.status(400).json({ error: "Invalid session ID" });
-//       }
-//       updatedData.session = sessionId; // Include sessionId in updateData
-//     }
-
-//     const updatedStudent = await User.findByIdAndUpdate(
-//       studentId,
-//       updatedData,
-//       {
-//         new: true, // Return the updated document
-//         runValidators: true, // Run model validators on the update
-//       }
-//     );
-
-//     if (!updatedStudent) {
-//       return res.status(404).json({ error: "Student not found" });
-//     }
-
-//     res.status(200).json(updatedStudent);
-//   } catch (error) {
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// };
-
-// export const updateStudentById = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const { sessionId, ...updateData } = req.body; // Extract sessionId
-
-//     // If sessionId is provided, validate it
-//     if (sessionId) {
-//       const session = await Session.findById(sessionId);
-//       if (!session) {
-//         return res.status(400).json({ error: "Invalid session ID" });
-//       }
-//       updateData.session = sessionId; // Include sessionId in updateData
-//     }
-
-//     // Find and update the admin
-//     const updatedStudent = await User.findByIdAndUpdate(id, updateData, {
-//       new: true,
-//     });
-
-//     if (!updatedStudent) {
-//       return res.status(404).json({ message: "Admin not found" });
-//     }
-
-//     res.status(200).json(updatedStudent);
-//   } catch (error) {
-//     res.status(500).json({ message: "Server Error" });
-//   }
-// };
 
 export const updateStudentById = async (req, res) => {
   try {

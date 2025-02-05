@@ -19,6 +19,7 @@ const ReceiptSchema = new mongoose.Schema(
       type: String, // Assuming the student's name is a string
       required: true,
     },
+
     classname: {
       type: String,
       required: true,

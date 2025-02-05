@@ -26,6 +26,7 @@ import {
   deleteUserFromSpecificSession,
   getStudentByIdBySession,
   updatePasswords,
+  getAllSessions,
 } from "../controller/authController.js";
 import {
   createDownload,
@@ -60,7 +61,7 @@ const commonRoute = (s3, authRoutes = []) => {
       acl: "public-read",
       contentType: multerS3.AUTO_CONTENT_TYPE,
       key: function (req, file, cb) {
-        const fileKey = `${Date.now()}-${file.originalname}`;
+        const fileKey = `mount/${Date.now()}-${file.originalname}`;
         console.log("Generated S3 file key:", fileKey); // Log the key
         cb(null, fileKey);
       },
@@ -138,6 +139,8 @@ const commonRoute = (s3, authRoutes = []) => {
   router.get("/book", getBook);
   router.get("/book/:id", getBookById);
   router.get("/account-setting", getAccountSetting);
+  router.get("/all-sessions", getAllSessions);
+
   // Assuming this is in your routes file (e.g., downloadRoutes.js)
   router.delete("/download/:sessionId/:downloadId", deleteDownload);
 
