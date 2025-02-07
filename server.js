@@ -48,7 +48,8 @@ const corsOptions = {
   origin: [
     "http://localhost:3001",
     "https://rarebuild.vercel.app",
-
+    "http://localhost:5173",
+    "https://rarebuildadmin.vercel.app",
     "https://mountcle.edupro.com.ng",
     "https://montclair.edupro.com.ng",
   ],
