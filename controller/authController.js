@@ -56,7 +56,10 @@ export const register = async (req, res) => {
       { expiresIn: "1h" } // Token expires in 1 hour
     );
 
-    return res.status(201).json({ token, user });
+    // return res.status(201).json({ token, user });
+    res
+      .status(201)
+      .json({ success: true, message: "User created successfully" });
   } catch (error) {
     console.error("Registration error:", error);
     return res.status(500).json({ error: "Registration failed" });
