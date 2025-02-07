@@ -3,8 +3,8 @@ import dotenv from "dotenv";
 import { S3 } from "@aws-sdk/client-s3";
 import cors from "cors";
 import classRoute from "./routes/classRoute.js";
-
 import adRoutes from "./routes/adRoutes.js";
+import fingerRoute from "./routes/fingerRoute.js";
 import aiRoute from "./routes/aiRoute.js";
 import examlistRoute from "./routes/examlistRoute.js";
 import gradeRoute from "./routes/gradeRoute.js";
@@ -26,7 +26,6 @@ import onScreenRoute from "./routes/onScreenRoute.js";
 import innovateRoute from "./routes/innovateRoute.js";
 import noticeRoute from "./routes/noticeRoute.js";
 import sessionRoute from "./routes/sessionRoute.js";
-
 import practicePqRoutes from "./routes/practicePqRoutes.js";
 import { getStudentsByClass } from "./controller/authController.js";
 import authenticateUser from "./middleware/authMiddleware.js";
@@ -78,6 +77,7 @@ app.use("/api/ad", adRoutes);
 app.use("/api/ad", adRoutes);
 app.use("/api/", examlistRoute);
 app.use("/api/", noticeRoute);
+app.use("/api", fingerRoute);
 // Define routes
 const authRoutes = [
   { method: "get", path: "/students/:id", middleware: authenticateUser },
