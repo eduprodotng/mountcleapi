@@ -47,6 +47,7 @@ const s3 = new S3({
 const corsOptions = {
   origin: [
     "http://localhost:3001",
+    "https://rarebuild.vercel.app",
     "https://mountcle.edupro.com.ng",
     "https://montclair.edupro.com.ng",
   ],
