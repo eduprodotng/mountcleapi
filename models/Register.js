@@ -2,6 +2,15 @@ import mongoose from "mongoose";
 
 const RegisterSchema = new mongoose.Schema(
   {
+    program: {
+      type: String,
+      enum: [
+        "Lebana Foundation Program",
+        "Higher Education Completion Program",
+        "Youth Skill Development Program",
+        "Basic Wellness Program",
+      ],
+    },
     email: { type: String },
     phone: { type: String },
     firstName: { type: String },
