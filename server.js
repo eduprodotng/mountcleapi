@@ -22,6 +22,7 @@ import offlineRoute from "./routes/offlineRoute.js";
 import OffRoutes from "./routes/OffRoutes.js";
 import psyRoute from "./routes/psyRoute.js";
 import receiptRoute from "./routes/receiptRoute.js";
+import registerRoute from "./routes/registerRoute.js";
 import onScreenRoute from "./routes/onScreenRoute.js";
 import innovateRoute from "./routes/innovateRoute.js";
 import noticeRoute from "./routes/noticeRoute.js";
@@ -46,7 +47,7 @@ const s3 = new S3({
 
 const corsOptions = {
   origin: [
-    "http://localhost:3001",
+    "http://localhost:3000",
     "https://rarebuild.vercel.app",
     "http://localhost:5173",
     "https://rarebuildadmin.vercel.app",
@@ -102,7 +103,7 @@ app.use("/api/", innovateRoute);
 app.use("/api/", OffRoutes);
 
 app.use("/api/", receiptRoute);
-
+app.use("/api/", registerRoute);
 app.use("/api/", receiptRoute);
 app.use("/api/", aiRoute);
 app.use("/api/divine", FibroidRoute);
@@ -120,7 +121,6 @@ app.use("/api/", parentRoute);
 app.use("/api/", subRoute);
 app.use("/api/", questionRoute);
 app.use("/api/", examRoute);
-
 app.use("/api/", psyRoute);
 
 app.use("/api/", practicePqRoutes);
